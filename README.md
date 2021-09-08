@@ -10,7 +10,7 @@ There are many handy utils for maths, image and sound. Here's what they can be u
 | ------------------------------|:--------------------| --------------------|  -----------------------|
 | Randian Angle Inversion       | Get Image ressource | Get Sound ressource |  Print colored Messages |
 | Number mapping                | Resize Image        | Play sound          |                         |
-| Random number beetween bounds |                     |                     |                         |
+| Random number between bounds  |                     |                     |                         |
 
 Of course, Vector logic has been implemented with many handy functions.
 
