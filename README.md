@@ -1,0 +1,2 @@
+# Ethereal
+Java game framework
