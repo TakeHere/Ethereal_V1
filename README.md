@@ -5,7 +5,7 @@ Welcome to Ethereal game framework ! A java game framework that uses Swift as it
 ## Features: 
 Two objects are currently there:
 
-Pawn: Rendered object with position, size, rotation and texure \n
+Pawn: Rendered object with position, size, rotation and texure
 Actor: Pawn with velocity and gravity
 
 There are many handy utils for maths, image and sound. Here's what they can be used for:
