@@ -1,6 +1,7 @@
 package fr.takehere.ethereal.display;
 
 import fr.takehere.ethereal.Game;
+import fr.takehere.ethereal.Scene;
 import fr.takehere.ethereal.objects.Actor;
 import fr.takehere.ethereal.objects.ParticleGenerator;
 import fr.takehere.ethereal.objects.Pawn;
@@ -9,6 +10,8 @@ import fr.takehere.ethereal.utils.Vector2;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferStrategy;
 import java.util.List;
@@ -24,7 +27,11 @@ public class GameWindow extends JFrame{
     public boolean displayFps = true;
 
     public Canvas canvas;
-    public Game game;
+    public Dimension size;
+    public Scene currentScene;
+    private Game game;
+
+    private List<Integer> pressedKeys = new ArrayList<>();
 
     public GameWindow(String title, int height, int width, int targetFps, Game game){
         super(title);
@@ -32,7 +39,9 @@ public class GameWindow extends JFrame{
         this.title = title;
         this.targetFps = targetFps;
         this.game = game;
+        this.currentScene = game;
         this.canvas = new Canvas();
+        this.size = new Dimension(height, width);
 
         this.setSize(width,height);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -63,8 +72,23 @@ public class GameWindow extends JFrame{
     private static List<Runnable> runNextFrame = new ArrayList<>();
 
     private void start(){
+        canvas.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (!pressedKeys.contains(e.getKeyCode()))
+                    pressedKeys.add(e.getKeyCode());
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                pressedKeys.remove(Integer.valueOf(e.getKeyCode()));
+
+            }
+        });
+
         GameWindow gameWindow = this;
-        game.init();
+        game.gameWindow = this;
+        currentScene.init();
 
         Thread thread = new Thread(new Runnable() {
             long initialLaunchTime = System.nanoTime();
@@ -76,7 +100,7 @@ public class GameWindow extends JFrame{
                     Graphics2D g = getGraphics();
                     long startTime = System.nanoTime();
 
-                    g.clearRect(0,0,500,500);
+                    g.clearRect(0,0,getWidth(),getHeight());
 
                     //------< Avoid Concurrent exception >------
                     for (java.lang.Object o : runNextFrame.toArray()) {
@@ -86,7 +110,7 @@ public class GameWindow extends JFrame{
                     }
                     runNextFrame.clear();
 
-                    game.gameLoop(deltaTime);
+                    currentScene.gameLoop(deltaTime);
                     pawnRendering();
                     actorMovements();
                     particlesRotation();
@@ -105,7 +129,7 @@ public class GameWindow extends JFrame{
                     //--------< Fps calculations >--------
                     if (targetTime > elapsedTime){
                         try {
-                            Thread.sleep((int) (targetTime - elapsedTime) / 1000000);
+                            Thread.sleep((int) ((targetTime - elapsedTime) / 1000000) /2);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -132,7 +156,10 @@ public class GameWindow extends JFrame{
         Graphics2D g = getGraphics();
 
         HashMap<Pawn, Integer> unsortedPawnsDrawLevel = new HashMap();
-        Pawn.pawns.forEach(pawn -> unsortedPawnsDrawLevel.put(pawn, pawn.drawLevel));
+        Pawn.pawns.forEach(pawn -> {
+            if (pawn.scene.equals(currentScene))
+                unsortedPawnsDrawLevel.put(pawn, pawn.drawLevel);
+        });
 
         LinkedHashMap<Pawn, Integer> sortedPawnsDrawLevel = new LinkedHashMap<>();
         unsortedPawnsDrawLevel.entrySet()
@@ -145,31 +172,42 @@ public class GameWindow extends JFrame{
             AffineTransform tr = new AffineTransform();
 
             tr.translate(pawn.location.x, pawn.location.y);
-            tr.rotate(
-                    Math.toRadians(pawn.rotation),
-                    pawn.getDimension().width / 2,
-                    pawn.getDimension().height / 2
-            );
+            if(pawn.rotationAnchor == null){
+                tr.rotate(
+                        Math.toRadians(pawn.rotation),
+                        pawn.dimension.width / 2,
+                        pawn.dimension.height / 2
+                );
+            }else {
+                tr.rotate(
+                        Math.toRadians(pawn.rotation),
+                        pawn.rotationAnchor.x / 2,
+                        pawn.rotationAnchor.y / 2
+                );
+            }
             g.drawImage(pawn.texture, tr, null);
 
-            pawn.boundingBox = tr.createTransformedShape(new Rectangle(pawn.getDimension().width, pawn.getDimension().height));
+            pawn.boundingBox = tr.createTransformedShape(new Rectangle(pawn.dimension.width, pawn.dimension.height));
         }
     }
 
     public void actorMovements(){
         for (Actor actor : Actor.actors) {
-            //------< Calculate bounciness >------
-            if (actor.bounce){
-                if (actor.lastCollision < System.currentTimeMillis()){
-                    actor.lastCollision = (long) (System.currentTimeMillis() + (15 * deltaTime));
+            if (actor.scene.equals(currentScene)){
+                //------< Calculate bounciness >------
+                if (actor.bounce){
+                    if (actor.lastCollision < System.currentTimeMillis()){
+                        actor.lastCollision = (long) (System.currentTimeMillis() + (15 * deltaTime));
 
-                    for (Pawn pawn : Pawn.pawns) {
-                        if (!pawn.name.equalsIgnoreCase("particle")){
-                            if (actor != pawn){
-                                if (actor.boundingBox.getBounds().intersects(pawn.boundingBox.getBounds())){
-                                    Vector2 bounceVector = new Vector2(Math.sin(Math.toRadians(pawn.rotation)) * (actor.bounciness * deltaTime), Math.cos(Math.toRadians(pawn.rotation)) * (actor.bounciness * deltaTime) *-1);
+                        for (Pawn pawn : Pawn.pawns) {
+                            if (!pawn.name.equalsIgnoreCase("particle")){
+                                if (actor != pawn){
+                                    //TODO Collision projection
+                                    if (actor.boundingBox.getBounds().intersects(pawn.boundingBox.getBounds())){
+                                        Vector2 bounceVector = new Vector2(Math.sin(Math.toRadians(pawn.rotation)) * (actor.bounciness * deltaTime), Math.cos(Math.toRadians(pawn.rotation)) * (actor.bounciness * deltaTime) *-1);
 
-                                    actor.velocity.add(bounceVector);
+                                        actor.velocity = actor.velocity.add(bounceVector);
+                                    }
                                 }
                             }
                         }
@@ -179,7 +217,7 @@ public class GameWindow extends JFrame{
 
             //------< Apply velocity >------
             if (actor.gravity){
-                actor.velocity.add(new Vector2(0, game.gravity));
+                actor.velocity = actor.velocity.add(new Vector2(0, game.gravity));
             }
 
             actor.location = actor.location.add(actor.velocity);
@@ -188,8 +226,12 @@ public class GameWindow extends JFrame{
 
     public void particlesRotation(){
         for (ParticleGenerator particleGenerator : ParticleGenerator.particleGenerators) {
-            for (Actor particle : particleGenerator.particles) {
-                particle.rotation += particleGenerator.rotation;
+            if (particleGenerator.scene.equals(currentScene)){
+                if (particleGenerator.rotationSpeed != 0){
+                    for (Actor particle : particleGenerator.particles) {
+                        particle.rotation += particleGenerator.rotationSpeed;
+                    }
+                }
             }
         }
     }
@@ -198,9 +240,11 @@ public class GameWindow extends JFrame{
         Graphics2D g = getGraphics();
 
         for (Title title : Title.titles) {
-            g.setColor(title.color);
-            g.setFont(new Font(title.font, Font.PLAIN,title.size));
-            g.drawString(title.text, (int) title.location.x, (int) title.location.y);
+            if (title.scene.equals(currentScene)){
+                g.setColor(title.color);
+                g.setFont(new Font(title.font, Font.PLAIN,title.size));
+                g.drawString(title.text, (int) title.location.x, (int) title.location.y);
+            }
         }
     }
 
@@ -214,5 +258,13 @@ public class GameWindow extends JFrame{
         }catch (NullPointerException e){
             return this.getGraphics();
         }
+    }
+
+    public int getFps() {
+        return fps;
+    }
+
+    public boolean isPressed(int keyCode){
+        return pressedKeys.contains(keyCode);
     }
 }

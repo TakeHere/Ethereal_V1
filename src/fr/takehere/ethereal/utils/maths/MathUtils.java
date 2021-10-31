@@ -20,6 +20,10 @@ public class MathUtils {
         return random.nextInt(max - min + 1) + min;
     }
 
+    public static boolean isBetween(float value, float min, float max){
+        return value < max && value > min;
+    }
+
     public static Vector2 getCenterOfRectangle(Rectangle rectangle){
         return new Vector2(rectangle.x - rectangle.width/2, rectangle.y - rectangle.width/2);
     }
@@ -33,5 +37,9 @@ public class MathUtils {
                 rec1.x + rec1.width > rec2.x &&
                 rec1.y < rec2.y + rec2.height &&
                 rec1.y + rec1.height > rec2.y;
+    }
+
+    Vector2 pointToVector2(Point point){
+        return new Vector2(point.x, point.y);
     }
 }

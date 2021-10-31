@@ -1,5 +1,6 @@
 package fr.takehere.ethereal.objects;
 
+import fr.takehere.ethereal.Scene;
 import fr.takehere.ethereal.display.GameWindow;
 import fr.takehere.ethereal.utils.Vector2;
 import fr.takehere.ethereal.utils.maths.MathUtils;
@@ -12,8 +13,8 @@ import java.util.TimerTask;
 
 public class ParticleGenerator {
 
-    public int number;
-    public int rotation;
+    public int amount;
+    public int rotationSpeed;
     public int minSpeed;
     public int maxSpeed;
     public long lifeTime;
@@ -22,19 +23,20 @@ public class ParticleGenerator {
     public Dimension dimension;
     public Image texture;
     public boolean gravity;
+    public Scene scene;
 
     public static List<ParticleGenerator> particleGenerators = new ArrayList<>();
 
-    public ParticleGenerator(Vector2 location, Dimension dimension, Image texture, boolean gravity, int number, int rotation, int minSpeed, int maxSpeed, long lifeTime) {
+    public ParticleGenerator(Vector2 location, Dimension dimension, Image texture, boolean gravity, int amount, int minSpeed, int maxSpeed, long lifeTime, Scene scene) {
         this.location = MathUtils.getCenterOfRectangle(new Rectangle(location.toPoint(), dimension));
         this.dimension = dimension;
         this.texture = texture;
         this.gravity = gravity;
-        this.number = number;
-        this.rotation = rotation;
+        this.amount = amount;
         this.minSpeed = minSpeed;
         this.maxSpeed = maxSpeed;
         this.lifeTime = lifeTime;
+        this.scene = scene;
 
         particleGenerators.add(this);
     }
@@ -45,8 +47,9 @@ public class ParticleGenerator {
         GameWindow.runNextFrame(() -> {
             List<Actor> createdParticles = new ArrayList<>();
 
-            for (int i = 0; i < number; i++) {
-                Actor particle = new Actor(location, dimension, texture, "particle" , 999, gravity, false);
+            for (int i = 0; i < amount; i++) {
+                Actor particle = new Actor(location, dimension, texture, "particle", scene);
+                particle.gravity = true;
                 particle.velocity = MathUtils.randomDirection().multiply(MathUtils.randomNumberBetween(minSpeed, maxSpeed));
 
                 particles.add(particle);

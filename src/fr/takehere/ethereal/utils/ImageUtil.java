@@ -1,10 +1,14 @@
 package fr.takehere.ethereal.utils;
 
+import fr.takehere.ethereal.example.EtherealExample;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.IOException;
 
 public class ImageUtil {
+
+    public static Image placeholder = getImageRessource("Placeholder.png", EtherealExample.class);
 
     public static Image getImageRessource(String name, Class mainClass){
         try {
@@ -19,4 +23,6 @@ public class ImageUtil {
         Image resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_DEFAULT);
         return resultingImage;
     }
+
+
 }

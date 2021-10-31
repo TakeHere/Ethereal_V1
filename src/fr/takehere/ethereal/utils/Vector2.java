@@ -22,15 +22,15 @@ public class Vector2 {
     }
 
     public Vector2 add(Vector2 vector2){
-        return new Vector2(this.x += vector2.x, this.y += vector2.y);
+        return new Vector2(this.x + vector2.x, this.y + vector2.y);
     }
 
     public Vector2 subtract(Vector2 term) {
-        return new Vector2(this.x -= term.x, this.y -= term.y);
+        return new Vector2(this.x - term.x, this.y - term.y);
     }
 
     public Vector2 multiply(double factor){
-        return new Vector2(this.x *= factor, this.y *= factor);
+        return new Vector2(this.x * factor, this.y * factor);
     }
 
     public Point toPoint(){

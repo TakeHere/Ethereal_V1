@@ -1,5 +1,6 @@
 package fr.takehere.ethereal.objects;
 
+import fr.takehere.ethereal.Scene;
 import fr.takehere.ethereal.utils.Vector2;
 
 import java.awt.*;
@@ -15,16 +16,18 @@ public class Title {
     public Color color;
     public String font;
     public int size;
+    public Scene scene;
 
     public static List<Title> titles = new ArrayList<>();
 
-    public Title(String text, Vector2 location, Color colorInput, String font, int size, int speed) {
+    public Title(String text, Vector2 location, Color colorInput, String font, int size, int speed, Scene scene) {
         this.location = location;
         this.color = colorInput;
         this.font = font;
         this.size = size;
         this.text = text;
         this.color = new Color(color.getRed(), color.getGreen(), color.getBlue(), 255);
+        this.scene = scene;
 
         titles.add(this);
 
