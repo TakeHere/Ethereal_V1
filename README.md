@@ -1,6 +1,6 @@
 # Ethereal Game Framework
-Welcome to Ethereal game framework ! A java game framework that uses Swift as it's graphic renderer.
-❗ It's the third version of Ethereal, all ideas are appreciated !
+Welcome to Ethereal game framework ! A java game framework that uses Swift as it's graphic renderer.\
+❗ It's the version 1.3 of Ethereal, all ideas are appreciated !
 
 ## Features: 
 Two objects are currently there:
